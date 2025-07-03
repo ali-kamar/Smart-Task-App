@@ -1,0 +1,47 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migrations (optional if you don't want to track them)
+*/migrations/
+!*/migrations/__init__.py
+
+# Virtual environment
+venv/
+/.env
+/.env.*  # For .env.dev, .env.prod, etc.
+
+# Local settings and secrets
+*.log
+
+# Static & media (optional)
+staticfiles/
+static/
+media/
+
+# Docker artifacts
+*.pid
+*.tar
+*.bak
+*.swp
+
+# Docker named volumes (if created manually)
+volumes/
+
+# VSCode or IDE configs (optional)
+.vscode/
+.idea/
+
+# Testing and coverage
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# macOS and Windows system files
+.DS_Store
+Thumbs.db
