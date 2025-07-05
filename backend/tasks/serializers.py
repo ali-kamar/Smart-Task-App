@@ -64,8 +64,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         columns_data = validated_data.pop('columns', [])
-        user = self.context['request'].user
-        board = Board.objects.create(owner=user, **validated_data)
+        board = Board.objects.create( **validated_data)
         for column_data in columns_data:
             Column.objects.create(board=board, **column_data)
         return board

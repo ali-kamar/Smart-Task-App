@@ -15,8 +15,10 @@ from .serializers import (
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 
 class CustomUserViewSet(UserViewSet):
+    #override the create method to include token generation
     def perform_create(self, serializer):
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
@@ -31,6 +33,7 @@ class CustomUserViewSet(UserViewSet):
         return response
 
 class AIAssistantView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         user_input = request.data.get("task_description", "")
         token = os.getenv("TOKEN", "").strip()
@@ -95,6 +98,7 @@ class AIAssistantView(APIView):
 class BoardViewSet(viewsets.ModelViewSet):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Board.objects.filter(owner=self.request.user)
@@ -122,6 +126,7 @@ class BoardViewSet(viewsets.ModelViewSet):
 class ColumnViewSet(viewsets.ModelViewSet):
     queryset = Column.objects.all()
     serializer_class = ColumnSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Column.objects.filter(board__owner=self.request.user)
@@ -135,6 +140,7 @@ class ColumnViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Task.objects.filter(column__board__owner=self.request.user)
@@ -174,6 +180,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 class SubtaskViewSet(viewsets.ModelViewSet):
     queryset = Subtask.objects.all()
     serializer_class = SubtaskSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Subtask.objects.filter(task__column__board__owner=self.request.user)

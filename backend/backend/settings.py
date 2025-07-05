@@ -133,7 +133,7 @@ DJOSER = {
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
     "SEND_ACTIVATION_EMAIL": False,
     "SERIALIZERS": {
-        "user_create": "yourapp.serializers.UserSerializer",  # <-- this user custom serializer for creating users
+        "user_create": "tasks.serializers.UserSerializer",  # <-- this user custom serializer for creating users
     },
     "LOGIN_FIELD": "username",  # OR "email" if you want email login
     "VIEWSET_CLASS": "tasks.views.CustomUserViewSet", 
@@ -145,7 +145,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
+   'AUTH_HEADER_TYPES': ('Bearer',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),   # Access token valid for 30 days
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7), 
 }
