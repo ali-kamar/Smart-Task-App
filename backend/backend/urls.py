@@ -16,10 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
+from rest_framework.routers import DefaultRouter
+from tasks.views import CustomUserViewSet  # <- your custom view
+
+router = DefaultRouter()
+router.register(r'users', CustomUserViewSet, basename='user')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('tasks.urls')),
+    path('auth/', include(router.urls)),  
     re_path(r'^auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.jwt')),
 ]

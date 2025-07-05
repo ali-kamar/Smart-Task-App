@@ -136,6 +136,7 @@ DJOSER = {
         "user_create": "yourapp.serializers.UserSerializer",  # <-- this user custom serializer for creating users
     },
     "LOGIN_FIELD": "username",  # OR "email" if you want email login
+    "VIEWSET_CLASS": "tasks.views.CustomUserViewSet", 
 }
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

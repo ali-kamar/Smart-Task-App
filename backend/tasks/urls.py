@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 urlpatterns = [
     path('ai/', views.AIAssistantView.as_view()),
+    
 ]
 
 # router = DefaultRouter()

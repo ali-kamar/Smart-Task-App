@@ -12,7 +12,23 @@ from .serializers import (
     TaskSerializer,
     SubtaskSerializer,
 )
-from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class CustomUserViewSet(UserViewSet):
+    def perform_create(self, serializer):
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        self.token_data = {
+            "access": str(refresh.access_token),
+        }
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            response.data.update(self.token_data)
+        return response
 
 class AIAssistantView(APIView):
     def post(self, request):
