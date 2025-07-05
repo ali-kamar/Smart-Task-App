@@ -1,45 +1,60 @@
 from rest_framework import serializers
-from .models import User, Board, Column, Task, Subtask
+from .models import Board, Column, Task, Subtask, User
 
-# 🔹 Subtask Serializer
+
 class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
         fields = ['id', 'title', 'is_completed']
         read_only_fields = ['id']
 
-# 🔹 Task Serializer
+
 class TaskSerializer(serializers.ModelSerializer):
-    subtasks = SubtaskSerializer(many=True, read_only=True)
+    subtasks = SubtaskSerializer(many=True, required=False)
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'subtasks']
+        fields = ['id', 'title', 'description', 'column', 'subtasks']
         read_only_fields = ['id']
 
-# 🔹 Column Serializer
+    def create(self, validated_data):
+        subtasks_data = validated_data.pop('subtasks', [])
+        task = Task.objects.create(**validated_data)
+        for subtask_data in subtasks_data:
+            Subtask.objects.create(task=task, **subtask_data)
+        return task
+
+    def update(self, instance, validated_data):
+        subtasks_data = validated_data.pop('subtasks', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if subtasks_data is not None:
+            instance.subtasks.all().delete()
+            for subtask_data in subtasks_data:
+                Subtask.objects.create(task=instance, **subtask_data)
+
+        return instance
+
+
 class ColumnSerializer(serializers.ModelSerializer):
     tasks = TaskSerializer(many=True, read_only=True)
 
     class Meta:
         model = Column
-        fields = ['id', 'name', 'tasks']
+        fields = ['id', 'name', 'board', 'tasks']
         read_only_fields = ['id']
 
-class BoardSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Board
-        fields = ['id', 'name']
-        read_only_fields = ['id']
-
-# Column Create Serializer related to board
 class ColumnCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Column
-        fields = ['name']
+        fields = ['id', 'name']
+        read_only_fields = ['id']
 
-class BoardCreateSerializer(serializers.ModelSerializer):
+
+class BoardSerializer(serializers.ModelSerializer):
     columns = ColumnCreateSerializer(many=True, required=False)
 
     class Meta:
@@ -55,7 +70,15 @@ class BoardCreateSerializer(serializers.ModelSerializer):
             Column.objects.create(board=board, **column_data)
         return board
 
-# 🔹 User Serializer
+
+class BoardDetailSerializer(serializers.ModelSerializer):
+    columns = ColumnSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ['id', 'name', 'columns']
+        read_only_fields = ['id']
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

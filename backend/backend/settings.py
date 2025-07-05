@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tasks',
     'rest_framework',
+    'djoser',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -123,3 +126,25 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'tasks.User'
+
+DJOSER = {
+    "USER_CREATE_PASSWORD_RETYPE": True,  # optional, good for UX
+    "USERNAME_CHANGED_EMAIL_CONFIRMATION": False,
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
+    "SEND_ACTIVATION_EMAIL": False,
+    "SERIALIZERS": {
+        "user_create": "yourapp.serializers.UserSerializer",  # <-- this user custom serializer for creating users
+    },
+    "LOGIN_FIELD": "username",  # OR "email" if you want email login
+}
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),   # Access token valid for 30 days
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7), 
+}
