@@ -110,18 +110,12 @@ class BoardViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
-    @action(detail=True, methods=['post'])
-    def set_columns(self, request, pk=None):
-        board = self.get_object()
-        Column.objects.filter(board=board).delete()  # delete old columns
-
-        columns_data = request.data.get('columns', [])
-        for column_data in columns_data:
-            Column.objects.create(board=board, **column_data)
-
-        return Response({'status': 'columns updated'})
-
+        
+    def destroy(self, request, *args, **kwargs):
+        # get object method automatiaclly returns the instance based on the lookup field, which is 'order_id' in this case.
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({'message': 'Board deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
 
 class ColumnViewSet(viewsets.ModelViewSet):
     queryset = Column.objects.all()
@@ -134,7 +128,7 @@ class ColumnViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         column = self.get_object()
         column.delete()
-        return Response({'status': 'column deleted'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'column deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -145,36 +139,10 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Task.objects.filter(column__board__owner=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        subtasks_data = request.data.pop('subtasks', [])
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        task = serializer.save()
-
-        for subtask_data in subtasks_data:
-            Subtask.objects.create(task=task, **subtask_data)
-
-        return Response(self.get_serializer(task).data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        subtasks_data = request.data.pop('subtasks', None)
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        task = serializer.save()
-
-        if subtasks_data is not None:
-            Subtask.objects.filter(task=task).delete()
-            for subtask_data in subtasks_data:
-                Subtask.objects.create(task=task, **subtask_data)
-
-        return Response(self.get_serializer(task).data)
-
     def destroy(self, request, *args, **kwargs):
         task = self.get_object()
         task.delete()
-        return Response({'status': 'task deleted'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'task deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class SubtaskViewSet(viewsets.ModelViewSet):
@@ -184,3 +152,8 @@ class SubtaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Subtask.objects.filter(task__column__board__owner=self.request.user)
+    
+    def destroy(self, request, *args, **kwargs):
+        task = self.get_object()
+        task.delete()
+        return Response({'message': 'subtask deleted'}, status=status.HTTP_204_NO_CONTENT)

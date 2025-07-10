@@ -1,0 +1,33 @@
+#services are the containers that will be created.
+services:
+#this is the name of our app container.
+  web:
+  #This builds the image from the Dockerfile in the current directory auto.
+    build: .
+    #We can override the cmd in the Dockerfile.
+    # command: python manage.py runserver 0.0.0.0:8000
+    # This makes any change in the code to be copied automatically in the container.
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+      # this means the web container to wait for the database to be ready before starting.
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    image: postgres:15
+    env_file:
+      - .env
+      #this is a named volume that will persist the data.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+       
+    ports:
+      - "5432:5432"
+
+
+volumes:
+  postgres_data:

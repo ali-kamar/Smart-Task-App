@@ -6,6 +6,7 @@ __pycache__/
 # Django migrations (optional if you don't want to track them)
 */migrations/
 !*/migrations/__init__.py
+db.sqlite3
 
 # Virtual environment
 venv/

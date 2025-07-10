@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Board, Column, Task, Subtask, User
+from django.db import transaction
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
@@ -19,21 +20,20 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         subtasks_data = validated_data.pop('subtasks', [])
-        task = Task.objects.create(**validated_data)
-        for subtask_data in subtasks_data:
-            Subtask.objects.create(task=task, **subtask_data)
+        with transaction.atomic():
+            task = Task.objects.create(**validated_data)
+            for subtask_data in subtasks_data:
+                Subtask.objects.create(task=task, **subtask_data)
         return task
 
     def update(self, instance, validated_data):
         subtasks_data = validated_data.pop('subtasks', None)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        if subtasks_data is not None:
-            instance.subtasks.all().delete()
-            for subtask_data in subtasks_data:
-                Subtask.objects.create(task=instance, **subtask_data)
+        with transaction.atomic():
+            instance = super().update(instance, validated_data)
+            if subtasks_data:
+                instance.subtasks.all().delete()
+                for subtask_data in subtasks_data:
+                    Subtask.objects.create(task=instance, **subtask_data)
 
         return instance
 
@@ -64,10 +64,24 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         columns_data = validated_data.pop('columns', [])
-        board = Board.objects.create( **validated_data)
-        for column_data in columns_data:
-            Column.objects.create(board=board, **column_data)
+        with transaction.atomic():
+            board = Board.objects.create( **validated_data)
+            for column_data in columns_data:
+                Column.objects.create(board=board, **column_data)
         return board
+    
+    def update(self, instance, validated_data):
+        updated_data = validated_data.pop('columns', None)
+        #this atomic block ensures that all operations within it are treated as a single transaction. If any operation fails, all changes will be rolled back, maintaining data integrity.
+        with transaction.atomic():
+            instance = super().update(instance, validated_data)
+            if updated_data:
+                # Clear existing items
+                instance.columns.all().delete()
+                # Create new items
+                for item in updated_data:
+                    Column.objects.create(board=instance, **item)
+        return instance
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
